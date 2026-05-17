@@ -1,15 +1,7 @@
 import { useState, useEffect } from "react";
 import { API_BASE } from "../utils/constants";
-import { IconPlay } from "./Icons";
+import { IconPlay, IconWarning, IconTv } from "./Icons";
 
-/**
- * Alur streaming yang benar (sesuai docs Miruro API):
- *   1. /episodes/:id          → dapat list episode + slug per provider
- *   2. /watch/:provider/:id/:cat/:slug → dapat episodeId final
- *   3. /sources?episodeId=... → dapat stream URL / embed
- *
- * episode prop berisi: { id, num, title, slug, _provider, category }
- */
 export default function VideoPlayer({ animeId, episode }) {
   const [streamUrl, setStreamUrl] = useState(null);
   const [sources,   setSources]   = useState([]);
@@ -30,13 +22,10 @@ export default function VideoPlayer({ animeId, episode }) {
     const cat      = episode?.category || category;
     const slug     = episode?.slug || episode?.id;
 
-    // Step 2 — /watch/:provider/:animeId/:cat/:slug
     fetch(`${API_BASE}/watch/${provider}/${animeId}/${cat}/${encodeURIComponent(slug)}`)
       .then((r) => r.json())
       .then((watchData) => {
         const epId = watchData?.episodeId || watchData?.id || slug;
-
-        // Step 3 — /sources
         return fetch(
           `${API_BASE}/sources?episodeId=${encodeURIComponent(epId)}&provider=${provider}&anilistId=${animeId}&category=${cat}`
         );
@@ -50,8 +39,12 @@ export default function VideoPlayer({ animeId, episode }) {
         setLoading(false);
       })
       .catch(() => {
-        // Fallback: coba /sources langsung tanpa /watch
         const epId = episode?.id || episode?.episodeId;
+        if (!epId) {
+          setError("Episode ID tidak ditemukan. Coba episode lain.");
+          setLoading(false);
+          return;
+        }
         fetch(
           `${API_BASE}/sources?episodeId=${encodeURIComponent(epId)}&provider=${provider}&anilistId=${animeId}&category=${cat}`
         )
@@ -77,12 +70,13 @@ export default function VideoPlayer({ animeId, episode }) {
     setStreamUrl(s?.url || s?.file || null);
   };
 
-  /* ── Placeholder ── */
   if (!episode)
     return (
       <div className="player-section">
         <div className="player-placeholder">
-          <IconPlay size={48} color="var(--muted2)" />
+          <div className="player-placeholder-icon">
+            <IconPlay size={48} color="var(--accent)" />
+          </div>
           <p>Pilih episode untuk mulai menonton</p>
         </div>
       </div>
@@ -90,15 +84,13 @@ export default function VideoPlayer({ animeId, episode }) {
 
   return (
     <div className="player-section">
-      {/* Header */}
       <div className="player-header">
         <span className="player-ep-title">
           Episode {episode?.num || episode?.number}
           {episode?.title ? ` — ${episode.title}` : ""}
         </span>
 
-        {/* Sub / Dub toggle */}
-        <div className="player-cat-tabs" style={{ marginLeft: "auto", display: "flex", gap: 4 }}>
+        <div style={{ marginLeft: "auto", display: "flex", gap: 4, flexWrap: "wrap" }}>
           {["sub", "dub"].map((c) => (
             <button
               key={c}
@@ -111,7 +103,6 @@ export default function VideoPlayer({ animeId, episode }) {
           ))}
         </div>
 
-        {/* Quality tabs */}
         {sources.length > 1 && (
           <div className="player-provider-tabs">
             {sources.map((s, i) => (
@@ -128,33 +119,37 @@ export default function VideoPlayer({ animeId, episode }) {
         )}
       </div>
 
-      {/* Player */}
+      {/* Player container - always render with explicit dimensions */}
       <div className="player-container">
         {loading && (
-          <div className="source-loading">
+          <div className="player-state">
             <div className="spinner" />
-            <p style={{ color: "var(--muted)", fontSize: "0.85rem" }}>Memuat sumber video...</p>
+            <p>Memuat sumber video...</p>
           </div>
         )}
         {!loading && error && (
-          <div className="source-loading">
-            <p style={{ color: "var(--muted)", fontSize: "0.85rem" }}>⚠️ {error}</p>
+          <div className="player-state">
+            <IconWarning size={40} color="var(--accent2)" />
+            <p>{error}</p>
+          </div>
+        )}
+        {!loading && !error && !streamUrl && (
+          <div className="player-state">
+            <IconTv size={40} color="var(--muted2)" />
+            <p>Tidak ada sumber video. Coba provider lain.</p>
           </div>
         )}
         {!loading && !error && streamUrl && (
           <iframe
+            key={streamUrl}
             src={streamUrl}
             allowFullScreen
-            allow="autoplay; fullscreen; picture-in-picture"
+            allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
             title={`Episode ${episode?.num}`}
+            referrerPolicy="no-referrer"
+            sandbox="allow-scripts allow-same-origin allow-presentation allow-popups allow-forms"
+            style={{ width: "100%", height: "100%", border: "none", display: "block", background: "#000" }}
           />
-        )}
-        {!loading && !error && !streamUrl && (
-          <div className="source-loading">
-            <p style={{ color: "var(--muted)", fontSize: "0.85rem" }}>
-              Tidak ada sumber video. Coba provider lain.
-            </p>
-          </div>
         )}
       </div>
     </div>

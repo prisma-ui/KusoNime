@@ -117,3 +117,47 @@ export function IconStar({ size = 14, color = "currentColor" }) {
     </svg>
   );
 }
+
+export function IconSearchEmpty({ size = 48, color = "currentColor" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <circle cx="20" cy="20" r="13" stroke={color} strokeWidth="2.5" />
+      <path d="M31 31L43 43" stroke={color} strokeWidth="2.5" strokeLinecap="round" />
+      <path d="M14 20H26M20 14V26" stroke={color} strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function IconNoResults({ size = 48, color = "currentColor" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <circle cx="20" cy="20" r="13" stroke={color} strokeWidth="2.5" />
+      <path d="M31 31L43 43" stroke={color} strokeWidth="2.5" strokeLinecap="round" />
+      <path d="M15 16C15 16 17 14 20 14C23 14 25 16 25 16" stroke={color} strokeWidth="2" strokeLinecap="round" />
+      <path d="M15 23C16.5 25 18.5 26 20 26C21.5 26 23.5 25 25 23" stroke={color} strokeWidth="2" strokeLinecap="round" />
+      <circle cx="16" cy="20" r="1.2" fill={color} />
+      <circle cx="24" cy="20" r="1.2" fill={color} />
+    </svg>
+  );
+}
+
+export function IconWarning({ size = 48, color = "currentColor" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d="M24 6L44 40H4L24 6Z" stroke={color} strokeWidth="2.5" strokeLinejoin="round" />
+      <path d="M24 20V29" stroke={color} strokeWidth="2.5" strokeLinecap="round" />
+      <circle cx="24" cy="34.5" r="1.5" fill={color} />
+    </svg>
+  );
+}
+
+export function IconTv({ size = 48, color = "currentColor" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <rect x="4" y="8" width="40" height="26" rx="4" stroke={color} strokeWidth="2.5" />
+      <path d="M16 40H32M24 34V40" stroke={color} strokeWidth="2.5" strokeLinecap="round" />
+      <circle cx="24" cy="21" r="7" stroke={color} strokeWidth="2" />
+      <path d="M21 19L28 21L21 23V19Z" fill={color} />
+    </svg>
+  );
+}
