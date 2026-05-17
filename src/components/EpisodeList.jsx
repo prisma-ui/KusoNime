@@ -29,8 +29,10 @@ export default function EpisodeList({ animeId, onEpSelect, currentEp }) {
 
   if (loading)
     return <div className="loading-full"><div className="spinner" /></div>;
-  if (error || !data || providers.length === 0)
-    return <div className="error-msg"><p>Episode tidak ditemukan.</p></div>;
+  if (!data)
+    return <div className="error-msg"><p>Episode tidak tersedia.</p></div>;
+  if (providers.length === 0)
+    return <p style={{ color: "var(--muted)", padding: "1rem", fontSize: "0.85rem" }}>Tidak ada data episode.</p>;
 
   const episodes = (provider ? epMap[provider] : []) || [];
   const filtered = search

@@ -7,10 +7,9 @@ import { getTitle, getImg, getBanner, cleanHtml } from "../utils/helpers";
 import { IconPlay, IconBack, IconStar } from "../components/Icons";
 
 export default function DetailPage({ animeId, onBack, onRelated }) {
-  const { data: infoData, loading } = useApi(`/info/${animeId}`, [animeId]);
-  const { data: recsData }          = useApi(`/anime/${animeId}/recommendations`, [animeId]);
-  const { data: charsData }         = useApi(`/anime/${animeId}/characters`, [animeId]);
-  const { data: relData }           = useApi(`/anime/${animeId}/relations`, [animeId]);
+  // All data (characters, relations, recommendations) is embedded in the /info response.
+  // The separate /anime/:id/characters etc. endpoints do not exist on this API.
+  const { data: infoData, loading, error: infoError } = useApi(`/info/${animeId}`, [animeId]);
 
   const [episode,      setEpisode]      = useState(null);
   const [descExpanded, setDescExpanded] = useState(false);
@@ -23,32 +22,58 @@ export default function DetailPage({ animeId, onBack, onRelated }) {
         <p>Memuat detail anime...</p>
       </div>
     );
-  if (!infoData)
+
+  // Show error if fetch failed
+  if (infoError)
+    return <div className="error-msg"><h3>Gagal memuat: {infoError}</h3></div>;
+
+  // Extract anime — API may return the object directly or wrapped in .data
+  const anime = infoData?.data || infoData;
+
+  // Validate the anime object has real content (guards against API error payloads)
+  const title = getTitle(anime);
+  if (!anime || (!title && !anime?.id))
     return <div className="error-msg"><h3>Anime tidak ditemukan</h3></div>;
 
-  const anime  = infoData?.data || infoData;
-  const title  = getTitle(anime);
   const desc   = cleanHtml(anime?.description);
   const banner = getBanner(anime);
   const img    = getImg(anime);
   const score  = anime?.averageScore || anime?.meanScore;
   const genres = anime?.genres || [];
 
-  const recs = (() => {
-    const fromEndpoint = recsData?.data || recsData?.results || recsData || [];
-    if (Array.isArray(fromEndpoint) && fromEndpoint.length > 0) return fromEndpoint;
-    const fromInfo = anime?.recommendations?.nodes || anime?.recommendations || [];
-    return Array.isArray(fromInfo) ? fromInfo : [];
-  })();
-
+  // --- Extract characters from /info response ---
+  // AniList format: { characters: { edges: [{ node, role }] } }
+  // Consumet flat:  { characters: [{ id, name, image, role }] }
   const chars = (() => {
-    const d = charsData?.data || charsData?.results || charsData || [];
-    return Array.isArray(d) ? d : [];
+    const raw = anime?.characters;
+    if (!raw) return [];
+    // AniList edge format
+    if (raw?.edges) return raw.edges;
+    // Consumet/flat array
+    if (Array.isArray(raw)) return raw;
+    return [];
   })();
 
+  // --- Extract relations from /info response ---
+  // AniList format: { relations: { edges: [{ node, relationType }] } }
+  // Consumet flat:  { relations: [{ id, title, relationType, ... }] }
   const rels = (() => {
-    const d = relData?.data || relData?.results || relData || [];
-    return Array.isArray(d) ? d : [];
+    const raw = anime?.relations;
+    if (!raw) return [];
+    if (raw?.edges) return raw.edges;
+    if (Array.isArray(raw)) return raw;
+    return [];
+  })();
+
+  // --- Extract recommendations from /info response ---
+  // AniList format: { recommendations: { nodes: [{ mediaRecommendation }] } }
+  // Consumet flat:  { recommendations: [{ id, title, ... }] }
+  const recs = (() => {
+    const raw = anime?.recommendations;
+    if (!raw) return [];
+    if (raw?.nodes) return raw.nodes;
+    if (Array.isArray(raw)) return raw;
+    return [];
   })();
 
   return (
@@ -181,9 +206,13 @@ export default function DetailPage({ animeId, onBack, onRelated }) {
             ) : (
               <div className="chars-grid">
                 {chars.slice(0, 24).map((c, i) => {
+                  // AniList edge: { node: { name, image }, role }
+                  // Consumet flat: { id, name: { full } | string, image: string | { large }, role }
                   const ch   = c?.node || c;
-                  const name = ch?.name?.full || ch?.name?.userPreferred || ch?.name || "—";
-                  const img  = ch?.image?.large || ch?.image?.medium || ch?.image || "";
+                  const name = ch?.name?.full || ch?.name?.userPreferred ||
+                               (typeof ch?.name === "string" ? ch.name : "") || "—";
+                  const img  = ch?.image?.large || ch?.image?.medium ||
+                               (typeof ch?.image === "string" ? ch.image : "") || "";
                   const role = c?.role || ch?.role || "";
                   return (
                     <div key={i} className="char-card">
@@ -207,18 +236,21 @@ export default function DetailPage({ animeId, onBack, onRelated }) {
             ) : (
               <div className="anime-grid">
                 {rels.slice(0, 12).map((r, i) => {
-                  const rel = r?.node || r;
+                  // AniList edge: { node: { id, title, ... }, relationType }
+                  // Consumet flat: { id, title, relationType, ... }
+                  const rel          = r?.node || r;
+                  const relationType = r?.relationType || rel?.relationType;
                   if (!rel?.id) return null;
                   return (
                     <div key={i} style={{ position: "relative" }}>
-                      {r?.relationType && (
+                      {relationType && (
                         <div style={{
                           position: "absolute", top: 6, left: 6, zIndex: 2,
                           background: "rgba(0,0,0,0.75)", color: "var(--accent2)",
                           fontSize: "0.65rem", fontWeight: 700, padding: "2px 6px",
                           borderRadius: 4, textTransform: "uppercase",
                         }}>
-                          {r.relationType}
+                          {relationType}
                         </div>
                       )}
                       <AnimeCard anime={rel} onClick={() => {
@@ -239,7 +271,9 @@ export default function DetailPage({ animeId, onBack, onRelated }) {
             <h3 className="section-title" style={{ marginBottom: "1rem" }}>Rekomendasi</h3>
             <div className="anime-grid">
               {recs.slice(0, 12).map((r, i) => {
-                const rec = r?.node?.mediaRecommendation || r?.node || r?.media || r;
+                // AniList node: { mediaRecommendation: { id, title, ... } }
+                // Consumet flat: { id, title, ... }
+                const rec = r?.mediaRecommendation || r?.node?.mediaRecommendation || r?.media || r;
                 if (!rec?.id) return null;
                 return <AnimeCard key={i} anime={rec} onClick={() => {
                   setEpisode(null);
