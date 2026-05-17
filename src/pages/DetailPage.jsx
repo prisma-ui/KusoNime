@@ -53,7 +53,14 @@ export default function DetailPage({ animeId, onBack, onRelated }) {
 
   return (
     <div className="detail-page fade-in">
-      {/* Hero banner - fixed height with no overlap */}
+      {/* Back button — above hero overlap zone */}
+      <div className="detail-back-bar">
+        <button className="back-btn" onClick={onBack}>
+          <IconBack size={14} color="currentColor" /> Back
+        </button>
+      </div>
+
+      {/* Hero banner */}
       <div className="detail-hero">
         {(banner || img) && (
           <div className="detail-hero-bg" style={{ backgroundImage: `url(${banner || img})` }} />
@@ -62,10 +69,6 @@ export default function DetailPage({ animeId, onBack, onRelated }) {
       </div>
 
       <div className="detail-body">
-        <button className="back-btn" onClick={onBack}>
-          <IconBack size={14} color="currentColor" /> Back
-        </button>
-
         {/* Top info */}
         <div className="detail-top">
           <div className="detail-poster">
