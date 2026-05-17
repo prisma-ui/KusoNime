@@ -1,6 +1,6 @@
 # AniStream 🎌
 
-Aplikasi streaming anime gratis berbasis React + Vite, menggunakan [Miruro API](https://miruro-api-dun.vercel.app).
+Aplikasi streaming anime gratis berbasis React + Vite, menggunakan Miruro API.
 
 ## Fitur
 - Spotlight hero carousel (auto-rotate)
