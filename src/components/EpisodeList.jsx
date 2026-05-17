@@ -16,10 +16,16 @@ export default function EpisodeList({ animeId, onEpSelect, currentEp }) {
   const providers  = isObject ? Object.keys(data) : (data ? ["default"] : []);
   const epMap      = isObject ? data : (data ? { default: data } : {});
 
+  // Reset provider & search when animeId or data changes
+  useEffect(() => {
+    setProvider(null);
+    setSearch("");
+  }, [animeId]);
+
   useEffect(() => {
     if (providers.length && !provider) setProvider(providers[0]);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [providers.join(",")]);
+  }, [data]);
 
   if (loading)
     return <div className="loading-full"><div className="spinner" /></div>;

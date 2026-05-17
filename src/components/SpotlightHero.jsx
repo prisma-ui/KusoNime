@@ -104,6 +104,10 @@ export default function SpotlightHero({ onAnimeClick }) {
               onClick={() => {
                 setIdx(i);
                 clearInterval(timerRef.current);
+                // Restart auto-advance after manual selection
+                timerRef.current = setInterval(() => {
+                  setIdx((cur) => (cur + 1) % Math.min(list.length, SPOTLIGHT_COUNT));
+                }, SPOTLIGHT_INTERVAL);
               }}
             />
           ))}

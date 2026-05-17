@@ -25,7 +25,7 @@ export default function Pagination({ page, totalPages, hasNext, onChange }) {
       // Tidak tahu total — tampilkan window kecil di sekitar halaman aktif
       const pages = [];
       const start = Math.max(1, page - 2);
-      const end   = page + 2;
+      const end   = hasNext ? page + 2 : page; // don't show pages beyond what exists
       for (let i = start; i <= end; i++) pages.push(i);
       return pages;
     }

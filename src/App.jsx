@@ -117,7 +117,7 @@ export default function App() {
           <DetailPage
             animeId={detailId}
             onBack={() => { setPage("home"); updateMeta(); }}
-            onRelated={(id) => { setDetailId(id); window.scrollTo(0, 0); }}
+            onRelated={(id) => { setDetailId(id); updateMeta(); window.scrollTo(0, 0); }}
           />
         )}
       </main>

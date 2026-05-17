@@ -11,7 +11,13 @@ export default function VideoPlayer({ animeId, episode }) {
   const [category,  setCategory]  = useState("sub");
 
   useEffect(() => {
-    if (!episode) return;
+    if (!episode) {
+      setStreamUrl(null);
+      setSources([]);
+      setError(null);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setStreamUrl(null);
     setSources([]);
@@ -22,44 +28,36 @@ export default function VideoPlayer({ animeId, episode }) {
     const cat      = episode?.category || category;
     const slug     = episode?.slug || episode?.id;
 
+    const fetchSources = (epId) =>
+      fetch(
+        `${API_BASE}/sources?episodeId=${encodeURIComponent(epId)}&provider=${provider}&anilistId=${animeId}&category=${cat}`
+      )
+        .then((r) => r.json())
+        .then((d) => {
+          const srcs  = d?.sources || d?.data?.sources || [];
+          const embed = d?.embed   || d?.data?.embed   || null;
+          setSources(srcs);
+          setStreamUrl(embed || srcs[0]?.url || srcs[0]?.file || null);
+          setLoading(false);
+        });
+
     fetch(`${API_BASE}/watch/${provider}/${animeId}/${cat}/${encodeURIComponent(slug)}`)
       .then((r) => r.json())
       .then((watchData) => {
         const epId = watchData?.episodeId || watchData?.id || slug;
-        return fetch(
-          `${API_BASE}/sources?episodeId=${encodeURIComponent(epId)}&provider=${provider}&anilistId=${animeId}&category=${cat}`
-        );
-      })
-      .then((r) => r.json())
-      .then((d) => {
-        const srcs   = d?.sources || d?.data?.sources || [];
-        const embed  = d?.embed   || d?.data?.embed   || null;
-        setSources(srcs);
-        setStreamUrl(embed || srcs[0]?.url || srcs[0]?.file || null);
-        setLoading(false);
+        return fetchSources(epId);
       })
       .catch(() => {
-        const epId = episode?.id || episode?.episodeId;
+        const epId = episode?.id || episode?.episodeId || slug;
         if (!epId) {
           setError("Episode ID tidak ditemukan. Coba episode lain.");
           setLoading(false);
           return;
         }
-        fetch(
-          `${API_BASE}/sources?episodeId=${encodeURIComponent(epId)}&provider=${provider}&anilistId=${animeId}&category=${cat}`
-        )
-          .then((r) => r.json())
-          .then((d) => {
-            const srcs  = d?.sources || d?.data?.sources || [];
-            const embed = d?.embed   || d?.data?.embed   || null;
-            setSources(srcs);
-            setStreamUrl(embed || srcs[0]?.url || srcs[0]?.file || null);
-            setLoading(false);
-          })
-          .catch(() => {
-            setError("Sumber video tidak ditemukan. Coba provider atau episode lain.");
-            setLoading(false);
-          });
+        fetchSources(epId).catch(() => {
+          setError("Sumber video tidak ditemukan. Coba provider atau episode lain.");
+          setLoading(false);
+        });
       });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [episode?.id, episode?.slug, animeId, category]);

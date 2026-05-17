@@ -221,7 +221,11 @@ export default function DetailPage({ animeId, onBack, onRelated }) {
                           {r.relationType}
                         </div>
                       )}
-                      <AnimeCard anime={rel} onClick={() => onRelated(rel.id)} />
+                      <AnimeCard anime={rel} onClick={() => {
+                        setEpisode(null);
+                        setActiveTab("episodes");
+                        onRelated(rel.id);
+                      }} />
                     </div>
                   );
                 })}
@@ -237,7 +241,11 @@ export default function DetailPage({ animeId, onBack, onRelated }) {
               {recs.slice(0, 12).map((r, i) => {
                 const rec = r?.node?.mediaRecommendation || r?.node || r?.media || r;
                 if (!rec?.id) return null;
-                return <AnimeCard key={i} anime={rec} onClick={() => onRelated(rec.id)} />;
+                return <AnimeCard key={i} anime={rec} onClick={() => {
+                  setEpisode(null);
+                  setActiveTab("episodes");
+                  onRelated(rec.id);
+                }} />;
               })}
             </div>
           </div>

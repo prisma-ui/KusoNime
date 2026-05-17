@@ -9,7 +9,7 @@ export default function AnimeCard({ anime, onClick }) {
   const format = anime?.format;
 
   return (
-    <div className="anime-card" onClick={() => onClick(anime)}>
+    <div className="anime-card" onClick={() => onClick?.(anime)}>
       <div className="card-poster">
         {img ? (
           <img src={img} alt={title} loading="lazy" />

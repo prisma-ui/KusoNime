@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useApi } from "../hooks/useApi";
 import AnimeCard from "../components/AnimeCard";
 import SkeletonCards from "../components/SkeletonCards";
@@ -10,6 +10,11 @@ const PER_PAGE = 24;
 export default function SearchPage({ query, onAnimeClick }) {
   const [page, setPage] = useState(1);
 
+  // Reset to page 1 whenever the query changes
+  useEffect(() => {
+    setPage(1);
+  }, [query]);
+
   const encoded = encodeURIComponent(query);
   const { data, loading } = useApi(
     query ? `/search?query=${encoded}&per_page=${PER_PAGE}&page=${page}` : null,
@@ -19,9 +24,6 @@ export default function SearchPage({ query, onAnimeClick }) {
   const list       = data?.results || data?.data || [];
   const totalPages = data?.totalPages || data?.lastPage || null;
   const hasNext    = data?.hasNextPage ?? (list.length === PER_PAGE);
-
-  // Reset ke halaman 1 saat query berubah
-  const handlePageChange = (p) => setPage(p);
 
   if (!query)
     return (
@@ -59,7 +61,7 @@ export default function SearchPage({ query, onAnimeClick }) {
         page={page}
         totalPages={totalPages}
         hasNext={hasNext}
-        onChange={(p) => { setPage(p); handlePageChange(p); }}
+        onChange={(p) => setPage(p)}
       />
     </div>
   );

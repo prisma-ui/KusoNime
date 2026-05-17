@@ -58,6 +58,7 @@ export default function BrowsePage({ onAnimeClick }) {
   };
 
   const switchTab = (id) => {
+    if (id === activeTab) return;
     setActiveTab(id);
     setPage(1);
     setFilterActive(false);
