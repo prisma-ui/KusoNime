@@ -13,6 +13,7 @@ export default function App() {
   const [page, setPage]             = useState("home");
   const [searchQuery, setSearchQuery] = useState("");
   const [detailId, setDetailId]     = useState(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const goAnime = (anime) => {
     const id = anime?.id || anime?.anilistId || anime?.mediaId;
@@ -21,6 +22,7 @@ export default function App() {
     setPage("detail");
     updateMeta(getTitle(anime), cleanHtml(anime?.description)?.slice(0, 160), getImg(anime));
     window.scrollTo(0, 0);
+    setMobileMenuOpen(false);
   };
 
   const goSearch = (q) => {
@@ -28,25 +30,35 @@ export default function App() {
     setPage("search");
     updateMeta(`Search: ${q}`, `Find anime: ${q} on ${SITE_NAME}`);
     window.scrollTo(0, 0);
+    setMobileMenuOpen(false);
   };
 
   const goHome = () => {
     setPage("home");
     updateMeta(null, null, null);
     window.scrollTo(0, 0);
+    setMobileMenuOpen(false);
   };
 
   const goBrowse = () => {
     setPage("browse");
     updateMeta("Browse Anime", `Browse trending, popular and upcoming anime on ${SITE_NAME}`);
     window.scrollTo(0, 0);
+    setMobileMenuOpen(false);
   };
 
   const goSchedule = () => {
     setPage("schedule");
     updateMeta("Jadwal Tayang", "Jadwal tayang anime mingguan");
     window.scrollTo(0, 0);
+    setMobileMenuOpen(false);
   };
+
+  const navLinks = [
+    { label: "Home", id: "home", action: goHome },
+    { label: "Browse", id: "browse", action: goBrowse },
+    { label: "Jadwal", id: "schedule", action: goSchedule },
+  ];
 
   return (
     <div className="app">
@@ -55,14 +67,46 @@ export default function App() {
           <IconLogo size={26} color={ACCENT_COLOR} />
           Ani<span>Stream</span>
         </div>
+
         <div className="nav-links">
-          <button className={`nav-link ${page === "home" ? "active" : ""}`} onClick={goHome}>Home</button>
-          <button className={`nav-link ${page === "browse" ? "active" : ""}`} onClick={goBrowse}>Browse</button>
-          <button className={`nav-link ${page === "schedule" ? "active" : ""}`} onClick={goSchedule}>Jadwal</button>
+          {navLinks.map(l => (
+            <button
+              key={l.id}
+              className={`nav-link ${page === l.id ? "active" : ""}`}
+              onClick={l.action}
+            >
+              {l.label}
+            </button>
+          ))}
         </div>
+
         <div style={{ flex: 1 }} />
         <SearchBar onSearch={goSearch} />
+
+        <button
+          className="hamburger"
+          onClick={() => setMobileMenuOpen(o => !o)}
+          aria-label="Toggle menu"
+        >
+          <span className={mobileMenuOpen ? "ham-open" : ""}>
+            <span /><span /><span />
+          </span>
+        </button>
       </nav>
+
+      {mobileMenuOpen && (
+        <div className="mobile-menu">
+          {navLinks.map(l => (
+            <button
+              key={l.id}
+              className={`mobile-menu-item ${page === l.id ? "active" : ""}`}
+              onClick={l.action}
+            >
+              {l.label}
+            </button>
+          ))}
+        </div>
+      )}
 
       <main style={{ flex: 1 }}>
         {page === "home"     && <HomePage    onAnimeClick={goAnime} />}
@@ -78,13 +122,7 @@ export default function App() {
         )}
       </main>
 
-      <footer style={{
-        borderTop: "1px solid var(--border)",
-        padding: "1.5rem 2rem",
-        color: "var(--muted2)",
-        fontSize: "0.8rem",
-        textAlign: "center",
-      }}>
+      <footer className="footer">
         <p>
           {FOOTER_TEXT.split("Miruro API").map((part, i) =>
             i === 0 ? <span key={i}>{part}</span> : (
