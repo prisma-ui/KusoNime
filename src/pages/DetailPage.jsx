@@ -14,7 +14,7 @@ export default function DetailPage({ animeId, onBack, onRelated }) {
 
   const [episode,      setEpisode]      = useState(null);
   const [descExpanded, setDescExpanded] = useState(false);
-  const [activeTab,    setActiveTab]    = useState("episodes"); // episodes | characters | relations
+  const [activeTab,    setActiveTab]    = useState("episodes");
 
   if (loading)
     return (
@@ -34,7 +34,6 @@ export default function DetailPage({ animeId, onBack, onRelated }) {
   const score  = anime?.averageScore || anime?.meanScore;
   const genres = anime?.genres || [];
 
-  // Recommendations: dari endpoint terpisah ATAU dari /info
   const recs = (() => {
     const fromEndpoint = recsData?.data || recsData?.results || recsData || [];
     if (Array.isArray(fromEndpoint) && fromEndpoint.length > 0) return fromEndpoint;
@@ -42,13 +41,11 @@ export default function DetailPage({ animeId, onBack, onRelated }) {
     return Array.isArray(fromInfo) ? fromInfo : [];
   })();
 
-  // Characters
   const chars = (() => {
     const d = charsData?.data || charsData?.results || charsData || [];
     return Array.isArray(d) ? d : [];
   })();
 
-  // Relations
   const rels = (() => {
     const d = relData?.data || relData?.results || relData || [];
     return Array.isArray(d) ? d : [];
@@ -56,10 +53,14 @@ export default function DetailPage({ animeId, onBack, onRelated }) {
 
   return (
     <div className="detail-page fade-in">
+      {/* Hero banner - fixed height with no overlap */}
       <div className="detail-hero">
-        <div className="detail-hero-bg" style={{ backgroundImage: `url(${banner || img})` }} />
+        {(banner || img) && (
+          <div className="detail-hero-bg" style={{ backgroundImage: `url(${banner || img})` }} />
+        )}
         <div className="detail-hero-grad" />
       </div>
+
       <div className="detail-body">
         <button className="back-btn" onClick={onBack}>
           <IconBack size={14} color="currentColor" /> Back
@@ -149,7 +150,7 @@ export default function DetailPage({ animeId, onBack, onRelated }) {
           <VideoPlayer animeId={animeId} episode={episode} />
         </div>
 
-        {/* Tab: Episodes / Characters / Relations */}
+        {/* Tabs */}
         <div className="page-tabs" style={{ marginTop: "1.5rem" }}>
           {[
             { id: "episodes",   label: "Episodes" },
@@ -166,12 +167,10 @@ export default function DetailPage({ animeId, onBack, onRelated }) {
           ))}
         </div>
 
-        {/* Episodes */}
         {activeTab === "episodes" && (
           <EpisodeList animeId={animeId} onEpSelect={setEpisode} currentEp={episode} />
         )}
 
-        {/* Characters */}
         {activeTab === "characters" && (
           <div style={{ padding: "1.5rem 0" }}>
             {chars.length === 0 ? (
@@ -198,13 +197,12 @@ export default function DetailPage({ animeId, onBack, onRelated }) {
           </div>
         )}
 
-        {/* Relations */}
         {activeTab === "relations" && (
           <div style={{ padding: "1.5rem 0" }}>
             {rels.length === 0 ? (
               <p style={{ color: "var(--muted)", fontSize: "0.85rem" }}>Data relasi tidak tersedia.</p>
             ) : (
-              <div className="cards-row wide">
+              <div className="anime-grid">
                 {rels.slice(0, 12).map((r, i) => {
                   const rel = r?.node || r;
                   if (!rel?.id) return null;
@@ -229,11 +227,10 @@ export default function DetailPage({ animeId, onBack, onRelated }) {
           </div>
         )}
 
-        {/* Recommendations */}
         {recs.length > 0 && (
           <div style={{ marginTop: "2.5rem" }}>
             <h3 className="section-title" style={{ marginBottom: "1rem" }}>Rekomendasi</h3>
-            <div className="recommendations">
+            <div className="anime-grid">
               {recs.slice(0, 12).map((r, i) => {
                 const rec = r?.node?.mediaRecommendation || r?.node || r?.media || r;
                 if (!rec?.id) return null;

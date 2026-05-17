@@ -1,6 +1,7 @@
 import { useApi } from "../hooks/useApi";
 import AnimeCard from "../components/AnimeCard";
 import SkeletonCards from "../components/SkeletonCards";
+import { IconSearchEmpty, IconNoResults } from "../components/Icons";
 
 export default function SearchPage({ query, onAnimeClick }) {
   const encoded = encodeURIComponent(query);
@@ -13,8 +14,8 @@ export default function SearchPage({ query, onAnimeClick }) {
   if (!query)
     return (
       <div className="no-results">
-        <p style={{ fontSize: "2rem" }}>🔍</p>
-        <p>Type something to search anime...</p>
+        <IconSearchEmpty size={56} color="var(--muted2)" />
+        <p>Ketik sesuatu untuk mencari anime...</p>
       </div>
     );
 
@@ -23,15 +24,15 @@ export default function SearchPage({ query, onAnimeClick }) {
       <h2 className="search-title">
         Results for &quot;<span>{query}</span>&quot;
       </h2>
-      {loading && <SkeletonCards count={12} />}
+      {loading && <SkeletonCards count={12} grid />}
       {!loading && list.length === 0 && (
         <div className="no-results">
-          <p style={{ fontSize: "2rem" }}>😢</p>
-          <p>No anime found for &quot;{query}&quot;</p>
+          <IconNoResults size={56} color="var(--muted2)" />
+          <p>Tidak ada anime ditemukan untuk &quot;{query}&quot;</p>
         </div>
       )}
-      {!loading && (
-        <div className="cards-row wide">
+      {!loading && list.length > 0 && (
+        <div className="anime-grid">
           {list.map((anime, i) => (
             <AnimeCard key={i} anime={anime} onClick={onAnimeClick} />
           ))}

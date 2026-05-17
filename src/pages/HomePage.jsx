@@ -1,5 +1,6 @@
 import SpotlightHero from "../components/SpotlightHero";
 import AnimeRow from "../components/AnimeRow";
+import AnimeGrid from "../components/AnimeGrid";
 
 export default function HomePage({ onAnimeClick }) {
   return (
@@ -10,9 +11,10 @@ export default function HomePage({ onAnimeClick }) {
         url="/trending?per_page=12"
         onAnimeClick={onAnimeClick}
       />
-      <AnimeRow
-        title="Currently Airing"
-        url="/recent?per_page=12"
+      {/* Recently Updated - tampil sebagai GRID */}
+      <AnimeGrid
+        title="Recently Updated"
+        url="/recent?per_page=16"
         onAnimeClick={onAnimeClick}
       />
       <AnimeRow
